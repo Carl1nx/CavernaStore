@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CavernaStore - Sua Loja de Mangás</title>
+    <!-- O caminho abaixo já fica no padrão do Flask -->
+    <link rel="stylesheet" href="../static/css/style.css">
+</head>
+<body>
+
+    <!-- CABEÇALHO / NAVBAR -->
+    <header class="header">
+        <div class="logo">
+            <h1>Caverna<span>Store</span></h1>
+        </div>
+        <nav class="nav">
+            <a href="{{ url_for('home') }}" class="active">Home</a>
+            <a href="#">Catálogo</a>
+            <a href="{{ url_for('carrinho') }}" class="cart-btn">Carrinho <span>(0)</span></a>
+        </nav>
+    </header>
+
+    <!-- BANNER PRINCIPAL -->
+    <section class="banner">
+        <h2>O CavernaStore é o seu refúgio dos Mangás</h2>
+        <p>Encontre os melhores volumes, edições especiais e lançamentos.</p>
+    </section>
+
+    <!-- VITRINE DE PRODUCTS -->
+    <main class="container">
+        <h3 class="section-title">Destaques da Caverna</h3>
+        
+        <div class="product-grid">
+            
+            <!-- CARD DE PRODUCT 1 -->
+            <div class="product-card">
+                <div class="badge">Vol. 01</div>
+                <img src="https://via.placeholder.com/200x300?text=Manga+Capa" alt="Capa do Mangá" class="product-img">
+                <div class="product-info">
+                    <h4>Nome do Mangá Aqui</h4>
+                    <p class="author">Autor Exemplo</p>
+                    <p class="price">R$ 34,90</p>
+                    <a href="{{ url_for('produto') }}" class="btn">Ver Detalhes</a>
+                </div>
+            </div>
+
+            <!-- CARD DE PRODUCT 2 -->
+            <div class="product-card">
+                <div class="badge">Vol. 02</div>
+                <img src="https://via.placeholder.com/200x300?text=Manga+Capa" alt="Capa do Mangá" class="product-img">
+                <div class="product-info">
+                    <h4>Nome do Mangá Aqui</h4>
+                    <p class="author">Autor Exemplo</p>
+                    <p class="price">R$ 34,90</p>
+                    <a href="{{ url_for('produto') }}" class="btn">Ver Detalhes</a>
+                </div>
+            </div>
+
+            <!-- CARD DE PRODUCT 3 -->
+            <div class="product-card">
+                <div class="badge warning">Últimas Unidades</div>
+                <img src="https://via.placeholder.com/200x300?text=Manga+Capa" alt="Capa do Mangá" class="product-img">
+                <div class="product-info">
+                    <h4>Nome do Mangá Aqui</h4>
+                    <p class="author">Autor Exemplo</p>
+                    <p class="price">R$ 39,90</p>
+                    <a href="{{ url_for('produto') }}" class="btn">Ver Detalhes</a>
+                </div>
+            </div>
+
+            <!-- CARD DE PRODUCT 4 -->
+            <div class="product-card">
+                <div class="badge">Vol. 01</div>
+                <img src="https://via.placeholder.com/200x300?text=Manga+Capa" alt="Capa do Mangá" class="product-img">
+                <div class="product-info">
+                    <h4>Nome do Mangá Aqui</h4>
+                    <p class="author">Autor Exemplo</p>
+                    <p class="price">R$ 29,90</p>
+                    <a href="{{ url_for('produto') }}" class="btn">Ver Detalhes</a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- RODAPÉ -->
+    <footer class="footer">
+        <p>© 2026 CavernaStore - Todos os direitos reservados.</p>
+    </footer>
+
+</body>
+</html>
