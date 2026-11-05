@@ -2,7 +2,6 @@
 .venv/
 venv/
 ENV/
-
 # Cache e arquivos compilados do Python
 __pycache__/
 *.pyc
