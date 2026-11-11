@@ -19,3 +19,7 @@ Thumbs.db
 # Bancos de dados locais (caso uses SQLite para testes futuros)
 *.sqlite3
 *.db
+
+# APIs Publicas
+baixar_capas.py
+popular_db.py

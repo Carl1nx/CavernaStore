@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CavernaStore - Sua Loja de Mangás</title>
-    <!-- O caminho abaixo já fica no padrão do Flask -->
-    <link rel="stylesheet" href="../static/css/style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
@@ -17,7 +16,7 @@
         <nav class="nav">
             <a href="{{ url_for('home') }}" class="active">Home</a>
             <a href="#">Catálogo</a>
-            <a href="{{ url_for('carrinho') }}" class="cart-btn">Carrinho <span>(0)</span></a>
+            <a href="{{ url_for('carrinho') }}" class="cart-btn">Carrinho <span>({{ session.get('carrinho', []) | length }})</span></a>
         </nav>
     </header>
 
@@ -27,67 +26,53 @@
         <p>Encontre os melhores volumes, edições especiais e lançamentos.</p>
     </section>
 
-    <!-- VITRINE DE PRODUCTS -->
+    <!-- VITRINE DE PRODUTOS -->
     <main class="container">
         <h3 class="section-title">Destaques da Caverna</h3>
         
         <div class="product-grid">
-            
-            <!-- CARD DE PRODUCT 1 -->
-            <div class="product-card">
-                <div class="badge">Vol. 01</div>
-                <img src="https://via.placeholder.com/200x300?text=Manga+Capa" alt="Capa do Mangá" class="product-img">
-                <div class="product-info">
-                    <h4>Nome do Mangá Aqui</h4>
-                    <p class="author">Autor Exemplo</p>
-                    <p class="price">R$ 34,90</p>
-                    <a href="{{ url_for('produto') }}" class="btn">Ver Detalhes</a>
-                </div>
-            </div>
+            {% for produto in produtos %}
+                <div class="product-card">
+                    <!-- Badge opcional de stock/destaque -->
+                    {% if produto.estoque < 5 %}
+                        <div class="badge warning">Últimos</div>
+                    {% else %}
+                        <div class="badge">Disponível</div>
+                    {% endif %}
 
-            <!-- CARD DE PRODUCT 2 -->
-            <div class="product-card">
-                <div class="badge">Vol. 02</div>
-                <img src="https://via.placeholder.com/200x300?text=Manga+Capa" alt="Capa do Mangá" class="product-img">
-                <div class="product-info">
-                    <h4>Nome do Mangá Aqui</h4>
-                    <p class="author">Autor Exemplo</p>
-                    <p class="price">R$ 34,90</p>
-                    <a href="{{ url_for('produto') }}" class="btn">Ver Detalhes</a>
-                </div>
-            </div>
+                    <!-- Imagem da Capa ligada ao ID do mangá -->
+                    <img src="{{ url_for('static', filename='img/mangas/manga_' ~ produto.id ~ '.jpg') }}" 
+                         alt="{{ produto.nome }}" 
+                         class="product-img"
+                         onerror="this.onerror=null; this.src='https://placehold.co/300x450/1e1e24/FFF.jpg?text=CavernaStore';">
 
-            <!-- CARD DE PRODUCT 3 -->
-            <div class="product-card">
-                <div class="badge warning">Últimas Unidades</div>
-                <img src="https://via.placeholder.com/200x300?text=Manga+Capa" alt="Capa do Mangá" class="product-img">
-                <div class="product-info">
-                    <h4>Nome do Mangá Aqui</h4>
-                    <p class="author">Autor Exemplo</p>
-                    <p class="price">R$ 39,90</p>
-                    <a href="{{ url_for('produto') }}" class="btn">Ver Detalhes</a>
+                    <div class="product-info">
+                        <h4>{{ produto.nome }}</h4>
+                        <div class="author">Volume Oficial</div>
+                        <div class="price">R$ {{ "%.2f"|format(produto.preco) }}</div>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">Stock: {{ produto.estoque }} unidades</p>
+                        
+                        <!-- Botão para adicionar ao carrinho usando a classe .btn do teu CSS -->
+                        <form action="{{ url_for('adicionar_carrinho', produto_id=produto.id) }}" method="POST">
+                            <button type="submit" class="btn" style="border: none; cursor: pointer; width: 100%;">Adicionar ao Carrinho</button>
+                        </form>
+                    </div>
                 </div>
-            </div>
-
-            <!-- CARD DE PRODUCT 4 -->
-            <div class="product-card">
-                <div class="badge">Vol. 01</div>
-                <img src="https://via.placeholder.com/200x300?text=Manga+Capa" alt="Capa do Mangá" class="product-img">
-                <div class="product-info">
-                    <h4>Nome do Mangá Aqui</h4>
-                    <p class="author">Autor Exemplo</p>
-                    <p class="price">R$ 29,90</p>
-                    <a href="{{ url_for('produto') }}" class="btn">Ver Detalhes</a>
-                </div>
-            </div>
-
+            {% else %}
+                <p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">Ainda não há mangás registados no catálogo.</p>
+            {% endfor %}
         </div>
     </main>
+
+    <!-- PAINEL ADMIN -->
+    <div style="text-align: center; margin: 20px 0;">
+        <a href="{{ Config.ROUTE_ADMIN }}" class="btn" style="display: inline-block; width: auto; padding: 10px 25px; background-color: #29292e; border: 1px solid var(--border-color);">Painel Administrativo</a>
+    </div>
 
     <!-- RODAPÉ -->
     <footer class="footer">
         <p>© 2026 CavernaStore - Todos os direitos reservados.</p>
     </footer>
-<a href="{{ Config.ROUTE_ADMIN }}" class="btn">Painel Administrativo</a>
+
 </body>
 </html>

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request
+from flask import Flask, render_template, redirect, url_for, request, session
 from flask_sqlalchemy import SQLAlchemy
 from config import Config
 import os
@@ -37,14 +37,11 @@ class ItemPedido(db.Model):
     produto_id = db.Column(db.Integer, db.ForeignKey('produtos.id'), primary_key=True)
     quantidade = db.Column(db.Integer, nullable=False)
 
-# Criação automática das tabelas (comentado temporariamente)
-# with app.app_context():
-#     db.create_all()
-
-# Rotas principais (usando as variáveis do Config)
+# Rotas principais
 @app.route(Config.ROUTE_HO)
 def home():
-    return render_template('index.html', Config=Config)
+    produtos = Produto.query.all()  
+    return render_template('index.html', produtos=produtos, Config=Config)
 
 @app.route(Config.ROUTE_PROD)
 def produto():
@@ -52,11 +49,20 @@ def produto():
 
 @app.route(Config.ROUTE_CAR)
 def carrinho():
-    return render_template('carrinho.html', Config=Config)
+    produto_ids = session.get('carrinho', [])
+    produtos_no_carrinho = Produto.query.filter(Produto.id.in_(produto_ids)).all() if produto_ids else []
+    return render_template('carrinho.html', produtos=produtos_no_carrinho, Config=Config)
+
+@app.route('/adicionar-carrinho/<int:produto_id>', methods=['POST'])
+def adicionar_carrinho(produto_id):
+    if 'carrinho' not in session:
+        session['carrinho'] = []
+    session['carrinho'].append(produto_id)
+    session.modified = True
+    return redirect(url_for('carrinho'))
 
 @app.route(Config.ROUTE_ADMIN, methods=['GET', 'POST'])
 def admin():
-    # Se o admin submeter um novo produto pelo formulário
     if request.method == 'POST':
         nome = request.form.get('nome')
         preco = request.form.get('preco')
@@ -71,10 +77,8 @@ def admin():
                 print(f"Erro ao salvar no banco: {e}")
                 db.session.rollback()
             
-            # Redirecionamento correto para a rota admin
-            return redirect(Config.ROUTE_ADMIN)
+        return redirect(Config.ROUTE_ADMIN)
 
-    # Tentativa de buscar dados do PostgreSQL com segurança (evita travamentos infinitos)
     try:
         total_usuarios = Cliente.query.count()
         produtos_cadastrados = Produto.query.all()
@@ -95,12 +99,50 @@ def admin():
     return render_template('admin.html', stats=stats, produtos=produtos_cadastrados, Config=Config)
 
 # Rota para deletar produto diretamente no banco
-@app.route(Config.ROUTE_B, methods=['POST'])
-def deletar_produto(id):
-    produto = Produto.query.get_or_404(id)
-    db.session.delete(produto)
+@app.route('/admin/produto/deletar/<int:produto_id>', methods=['POST'])
+def deletar_produto(produto_id):
+    produto_obj = Produto.query.get_or_404(produto_id)
+    db.session.delete(produto_obj)
     db.session.commit()
-    return redirect(url_for(Config.ROUTE_ADMIN))
+    return redirect(Config.ROUTE_ADMIN)
+
+# Rota para relatórios escolares (clientes, mangas compradas e total gasto)
+@app.route('/admin/relatorios')
+def relatorios_clientes():
+    try:
+        relatorio_clientes = db.session.query(
+            Cliente.id,
+            Cliente.nome,
+            Cliente.cidade,
+            db.func.count(db.distinct(Pedido.id)).label('total_pedidos'),
+            db.func.coalesce(db.func.sum(ItemPedido.quantidade), 0).label('total_mangas'),
+            db.func.coalesce(db.func.sum(ItemPedido.quantidade * Produto.preco), 0).label('total_gasto')
+        ).outerjoin(Pedido, Cliente.id == Pedido.cliente_id)\
+         .outerjoin(ItemPedido, Pedido.id == ItemPedido.pedido_id)\
+         .outerjoin(Produto, ItemPedido.produto_id == Produto.id)\
+         .group_by(Cliente.id, Cliente.nome, Cliente.cidade).all()
+
+        detalhes_pedidos = db.session.query(
+            Pedido.id.label('pedido_id'),
+            Cliente.nome.label('cliente_nome'),
+            Pedido.data,
+            db.func.sum(ItemPedido.quantidade * Produto.preco).label('valor_pedido')
+        ).join(Cliente, Pedido.cliente_id == Cliente.id)\
+         .join(ItemPedido, Pedido.id == ItemPedido.pedido_id)\
+         .join(Produto, ItemPedido.produto_id == Produto.id)\
+         .group_by(Pedido.id, Cliente.nome, Pedido.data).all()
+
+    except Exception as e:
+        print(f"Erro ao gerar relatórios: {e}")
+        relatorio_clientes = []
+        detalhes_pedidos = []
+
+    return render_template(
+        'relatorios.html', 
+        relatorio_clientes=relatorio_clientes, 
+        detalhes_pedidos=detalhes_pedidos, 
+        Config=Config
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)
